@@ -1,0 +1,22 @@
+h1. Hpricotscape
+
+A browser for master web scrapers.  It saves cookies, has a decent user agent, sends referer urls, and let's you (the scraper) easily submit forms on the page.  It *doesn't* run the page's javascript yet, however.
+
+h2. Installation
+
+In your application's @Gemfile@, put:
+
+<pre>
+  gem 'hpricotscape', :git => 'git@github.com:crowdmob/hpricotscape.git'
+</pre>
+
+
+h2. Usage 
+
+This operates a "browser" that returns Hpricot object for each page it accesses.  General usage is as follows:
+
+<pre>
+  browser = Hpricotscape::Browser.new # You can set debug_mode to true (which opens up security vulnerabilities), and any pre-set cookies you want to have
+  dom_elements = browser.load('http://www.example.com/cart') # Loads a URL, a shopping card in this example
+  dom_elements = browser.submit('form#cart', 'checkout', { item_0_qty: 2 }) # Submits the page's form#cart form with a submit button matching 'checkout', with the item_0_qty value set to 2
+</pre>
