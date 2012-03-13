@@ -1,10 +1,6 @@
-require 'hpricot'
-require 'uri'
-require 'open-uri'
-require 'net/http'
-require 'net/https'
-
 module Hpricotscape
+  
+
   class Browser
     attr_accessor :cookies, :url, :html, :history, :debug
     
