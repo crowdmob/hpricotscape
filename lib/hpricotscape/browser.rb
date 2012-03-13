@@ -45,7 +45,7 @@ module Hpricotscape
     
     
     def _load(url, method = :get, send_body = nil)
-      loaded = Hpricotscape::Net.get_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug)
+      loaded = Hpricotscape::Net.access_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug)
       self.cookies = loaded[:cookies]
       self.url = loaded[:url]
       self.history << self.url
