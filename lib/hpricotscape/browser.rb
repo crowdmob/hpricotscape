@@ -1,6 +1,7 @@
 require 'hpricot'
 require 'uri'
 require 'open-uri'
+require 'net/http'
 require 'net/https'
 
 module Hpricotscape
