@@ -58,7 +58,7 @@ module Hpricotscape
   module Form
     
     # Simply a helper for parsing a form embedded in a page, usually used for building up a form submission
-    def parse(form_hpricot)
+    def self.parse(form_hpricot)
       form_values = {:inputs => {}, :submits => {}, :action => form_hpricot.attributes['action'], :buttons => {}}
 
       # Check each input
@@ -99,7 +99,7 @@ module Hpricotscape
   module Net
     DEFAULT_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7'
     
-    def access_and_hpricot(full_url, cookies= [], referer = nil, method = :get, send_body = nil, override_cookie_string = nil, debug_mode = false, user_agent = DEFAULT_UA)
+    def self.access_and_hpricot(full_url, cookies= [], referer = nil, method = :get, send_body = nil, override_cookie_string = nil, debug_mode = false, user_agent = DEFAULT_UA)
       logger.info "[#{Time.now}] GET #{full_url}" if debug_mode
       
       action_uri = URI.parse(full_url)
@@ -157,7 +157,7 @@ module Hpricotscape
       return { cookies: new_cookies, hpricot: final_doc, url: redirect_url ? redirect_url : full_url }
     end
 
-    def unzipped_body(res)
+    def self.unzipped_body(res)
       if res.header[ 'Content-Encoding' ].eql?( 'gzip' ) then
         sio = StringIO.new( res.body )
         gz = Zlib::GzipReader.new( sio )
@@ -174,14 +174,14 @@ module Hpricotscape
   module Cookie
     
     # File webrick/httputils.rb, line 190
-    def dequote(str)
+    def self.dequote(str)
       ret = (/\A"(.*)"\Z/ =~ str) ? $1 : str.dup
       ret.gsub!(/\\(.)/, "\\1")
       ret
     end
 
     # File webrick/cookie.rb, line 79
-    def parse_set_cookie(str)
+    def self.parse_set_cookie(str)
       cookie_elem = str.split(';')
       first_elem = cookie_elem.shift
       first_elem.strip!
@@ -208,7 +208,7 @@ module Hpricotscape
     
     
     # File webrick/cookie.rb, line 104
-    def parse_set_cookies(existing_cookies, str)
+    def self.parse_set_cookies(existing_cookies, str)
       new_cookies = str ? str.split(/,(?=[^;,]*=)|,$/).collect{ |c| parse_set_cookie(c) } : []
       if new_cookies == nil or new_cookies.empty?
         return existing_cookies
