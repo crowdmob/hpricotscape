@@ -100,7 +100,7 @@ module Hpricotscape
     DEFAULT_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7'
     
     def self.access_and_hpricot(full_url, cookies= [], referer = nil, method = :get, send_body = nil, override_cookie_string = nil, debug_mode = false, user_agent = DEFAULT_UA)
-      logger.info "[#{Time.now}] GET #{full_url}" if debug_mode
+      puts "[INFO #{Time.now}] GET #{full_url}" if debug_mode
       
       action_uri = URI.parse(full_url)
       http = Net::HTTP.new(action_uri.host, action_uri.port)
@@ -137,7 +137,7 @@ module Hpricotscape
       if response.header['location'] # let 'open-uri' do follow all redirects
         redirect_url = response.header['location'].starts_with?('/') ? "#{base_url(full_url)}#{response.header['location']}" : response.header['location']
         
-        logger.info "[#{Time.now}] +--- Got redirected to #{redirect_url}" if debug_mode
+        puts "[INFO #{Time.now}] +--- Got redirected to #{redirect_url}" if debug_mode
         
         redirect_settings = { 
           'Cookie' => cookie_string, 
