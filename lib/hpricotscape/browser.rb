@@ -100,7 +100,7 @@ module Hpricotscape
       puts "[INFO #{Time.now}] GET #{full_url}" if debug_mode
       
       action_uri = URI.parse(full_url)
-      http = Net::HTTP.new(action_uri.host, action_uri.port)
+      http = ::Net::HTTP.new(action_uri.host, action_uri.port)
       
       http.set_debug_output $stderr if debug_mode
       
@@ -111,7 +111,7 @@ module Hpricotscape
       
       cookie_string = override_cookie_string ? override_cookie_string : cookies.map {|c| "#{c.keys[0]}=#{c[c.keys[0]][:value]}"}.join('; ')
       
-      request = (method == :post ? Net::HTTP::Post : Net::HTTP::Get).new(action_uri.path, { 
+      request = (method == :post ? ::Net::HTTP::Post : ::Net::HTTP::Get).new(action_uri.path, { 
         'Cookie' => cookie_string, 
         'Referer' => referer.to_s, 
         'User-Agent' => user_agent, 
