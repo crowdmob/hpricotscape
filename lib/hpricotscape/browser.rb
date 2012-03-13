@@ -236,5 +236,6 @@ module Hpricotscape
 
         return final_cookies
       end
+    end
   end
 end
