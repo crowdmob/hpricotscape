@@ -10,6 +10,10 @@ module Hpricotscape
       self.history = []
     end
     
+    def url_base
+      Hpricotscape::Net.base_url(url)
+    end
+    
     # GET a resource
     def load(url)
       _load(url, :get)
