@@ -160,6 +160,10 @@ module Hpricotscape
       return { cookies: new_cookies, hpricot: final_doc, url: redirect_url ? redirect_url : full_url }
     end
 
+    def self.base_url(url)
+      url[0...url.index('/', 8)]
+    end
+    
     def self.unzipped_body(res)
       if res.header[ 'Content-Encoding' ].eql?( 'gzip' ) then
         sio = StringIO.new( res.body )
