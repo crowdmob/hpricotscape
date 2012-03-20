@@ -28,7 +28,7 @@ module Hpricotscape
         "#{self.url.split('://').first}://#{self.url.split('://').last.split('/').first}#{form_values[:action]}" : 
         form_values[:action]
       
-      # Allow user to use strings or symbols for input values, and merget them into the form
+      # Allow user to use strings or symbols for input values, and merge them into the form
       form_values[:inputs].keys.each do |k|
         form_values[:inputs][k.to_s] = input_values_hash[k.to_s] if input_values_hash.has_key?(k.to_s)
         form_values[:inputs][k.to_s] = input_values_hash[k.to_sym] if input_values_hash.has_key?(k.to_sym)
@@ -121,6 +121,7 @@ module Hpricotscape
         'Accept-Language' => 'en-US,en;q=0.8', 
         'Accept-Charset' => 'ISO-8859-1,utf-8;q=0.7,*;q=0.3' 
       })
+      request.set_form_data(send_body) if send_body
 
       response = http.request(request)
 
