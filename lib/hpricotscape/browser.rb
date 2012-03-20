@@ -34,7 +34,7 @@ module Hpricotscape
         form_values[:inputs][k.to_s] = input_values_hash[k.to_sym] if input_values_hash.has_key?(k.to_sym)
       end
       
-      submit_key = form_values[:submits].keys.select { |k| k.downcase.index(submit_matcher) > -1 }.first
+      submit_key = form_values[:submits].keys.select { |k| k.downcase.index(submit_matcher) }.first
       form_post_body = form_values[:inputs].merge(submit_key => form_values[:submits][submit_key])
 
       _load(full_action_url, :post, form_post_body)
