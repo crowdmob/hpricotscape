@@ -82,6 +82,11 @@ module Hpricotscape
         form_values[:inputs][s.attributes['name']] = "#{default_option.attributes['value']}"
       end
 
+      # Check each textarea 
+      (form_hpricot/'textarea').each do |i|
+        form_values[:inputs][i.attributes['name']] = "#{i.inner_text}"
+      end
+
       # look for submit buttons
       (form_hpricot/'*[@type=\'submit\']').each do |i|
         form_values[:submits][i.attributes['name']] = "#{i.attributes['value']}"
