@@ -46,11 +46,30 @@ module Hpricotscape
     
     
     def _load(url, method = :get, send_body = nil)
+      url = _resolve_relative_url(url)
       loaded = Hpricotscape::Net.access_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug)
       self.cookies = loaded[:cookies]
       self.url = loaded[:url]
       self.history << self.url
       self.html = loaded[:hpricot]
+    end
+
+    def _resolve_relative_url(url)
+      uri = URI(url)
+      if !uri.absolute and !self.history.empty?
+        prev_url = self.history[-1]
+        prev_uri = URI(prev_url)
+        if url.starts_with? '/'
+          url = (prev_uri + url).to_s
+        else
+          tmp = prev_uri.scheme + '://' + prev_uri.host + '/' + prev_uri.path
+          tmp += tmp.ends_with?('/') ? '' : '/'
+          url = tmp + url
+          query = uri.query.nil? ? '' : '&' + uri.query
+          url += query
+        end
+      end
+      url
     end
   end
   
