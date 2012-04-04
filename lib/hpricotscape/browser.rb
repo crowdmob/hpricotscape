@@ -46,7 +46,7 @@ module Hpricotscape
     
     
     def _load(url, method = :get, send_body = nil)
-      # url = _resolve_relative_url(url)
+      url = _resolve_relative_url(url)
       loaded = Hpricotscape::Net.access_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug)
       self.cookies = loaded[:cookies]
       self.url = loaded[:url]
@@ -65,8 +65,6 @@ module Hpricotscape
           tmp = prev_uri.scheme + '://' + prev_uri.host + '/' + prev_uri.path
           tmp += tmp.ends_with?('/') ? '' : '/'
           url = tmp + url
-          query = uri.query.nil? ? '' : '&' + uri.query
-          url += query
         end
       end
       url
