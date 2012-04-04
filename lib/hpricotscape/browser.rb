@@ -46,7 +46,7 @@ module Hpricotscape
     
     
     def _load(url, method = :get, send_body = nil)
-      url = _resolve_relative_url(url)
+      # url = _resolve_relative_url(url)
       loaded = Hpricotscape::Net.access_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug)
       self.cookies = loaded[:cookies]
       self.url = loaded[:url]
@@ -137,9 +137,23 @@ module Hpricotscape
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
+      # Requests need to be able to handle query parameters.  For more
+      # information, see:
+      #   http://stackoverflow.com/questions/2986252/ruby-can-net-http-make-a-get-and-post-request-simultaneously
+      path = action_uri.path
+      if !action_uri.query.nil?
+        path += '?' + action_uri.query
+      end
+
+      # Fragments shouldn't matter since they're only interpreted client-side.
+      # But I'm including them anyway for completeness.
+      if !action_uri.fragment.nil?
+        path += '#' + action_uri.fragment
+      end
+
       cookie_string = override_cookie_string ? override_cookie_string : cookies.map {|c| "#{c.keys[0]}=#{c[c.keys[0]][:value]}"}.join('; ')
-      
-      request = (method == :post ? ::Net::HTTP::Post : ::Net::HTTP::Get).new(action_uri.path, { 
+
+      request = (method == :post ? ::Net::HTTP::Post : ::Net::HTTP::Get).new(path, {
         'Cookie' => cookie_string, 
         'Referer' => referer.to_s, 
         'User-Agent' => user_agent, 
