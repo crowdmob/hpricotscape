@@ -57,12 +57,11 @@ module Hpricotscape
     def _resolve_relative_url(url)
       uri = URI(url)
       if !uri.absolute and !self.history.empty?
-        prev_url = self.history[-1]
-        prev_uri = URI(prev_url)
+        previously_visited_uri = URI(self.history[-1])
         if url.starts_with? '/'
-          url = (prev_uri + url).to_s
+          url = (previously_visited_uri + url).to_s
         else
-          tmp = prev_uri.scheme + '://' + prev_uri.host + '/' + prev_uri.path
+          tmp = previously_visited_uri.scheme + '://' + previously_visited_uri.host + '/' + previously_visited_uri.path
           tmp += tmp.ends_with?('/') ? '' : '/'
           url = tmp + url
         end
