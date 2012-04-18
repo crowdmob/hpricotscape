@@ -152,7 +152,7 @@ module Hpricotscape
         begin
           "#{c.keys[0]}=#{c[c.keys[0]][:value]}"
         rescue NoMethodError => e
-          "#{c.keys[0]}=#{c[c.keys[0]]}"
+          "#{c.keys[0]}"
         end
       }.join('; ')
 
