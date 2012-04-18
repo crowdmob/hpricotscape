@@ -148,6 +148,9 @@ module Hpricotscape
         path += '#' + action_uri.fragment
       end
 
+      # Some cookies have identifiers but not values.  These cookies should be
+      # stringified as "identifier;" rather than "identifier=value;".  That's
+      # the reason for the begin/rescue/end within the map.
       cookie_string = override_cookie_string ? override_cookie_string : cookies.map {|c|
         begin
           "#{c.keys[0]}=#{c[c.keys[0]][:value]}"
