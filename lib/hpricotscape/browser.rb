@@ -148,7 +148,13 @@ module Hpricotscape
         path += '#' + action_uri.fragment
       end
 
-      cookie_string = override_cookie_string ? override_cookie_string : cookies.map {|c| "#{c.keys[0]}=#{c[c.keys[0]][:value]}"}.join('; ')
+      cookie_string = override_cookie_string ? override_cookie_string : cookies.map {|c|
+        begin
+          "#{c.keys[0]}=#{c[c.keys[0]][:value]}"
+        rescue NoMethodError => e
+          "#{c.keys[0]}=#{c[c.keys[0]]}"
+        end
+      }.join('; ')
 
       request = (method == :post ? ::Net::HTTP::Post : ::Net::HTTP::Get).new(path, {
         'Cookie' => cookie_string, 
