@@ -1,51 +1,50 @@
 module Hpricotscape
-  
+
 
   class Browser
     attr_accessor :cookies, :url, :html, :history, :debug
-    
+
     def initialize preset_cookies = [], debug_mode = false
       self.cookies = preset_cookies ? preset_cookies.dup : []
       self.debug = debug_mode
       self.history = []
     end
-    
+
     def url_base
       Hpricotscape::Net.base_url(url)
     end
-    
+
     # GET a resource
     def load(url)
       _load(url, :get)
     end
-    
+
     # Submit a form on the page, with given input values.  If the input values don't exist on the page, they will *NOT* be added.
-    def submit(form_selector = 'form', submit_matcher = 'submit', input_values_hash = {})
+    def submit(form_selector='form', submit_matcher='submit', input_values_hash={})
       forms = (self.html/form_selector)
-      
+
       if forms.length != 1
         raise "Problem with parsing form page -- expected only 1 form tag on `#{self.url}` matching selector `#{form_selector}`, but selected `#{forms.length}` fom tags\n#{forms.inspect}"
       end
-      
+
       form_values = Hpricotscape::Form.parse(forms[0])
       full_action_url = form_values[:action].starts_with?('/') ? 
         "#{self.url.split('://').first}://#{self.url.split('://').last.split('/').first}#{form_values[:action]}" : 
         form_values[:action]
-      
+
       # Allow user to use strings or symbols for input values, and merge them into the form
       form_values[:inputs].keys.each do |k|
         form_values[:inputs][k.to_s] = input_values_hash[k.to_s] if input_values_hash.has_key?(k.to_s)
         form_values[:inputs][k.to_s] = input_values_hash[k.to_sym] if input_values_hash.has_key?(k.to_sym)
       end
-      
+
       submit_key = form_values[:submits].keys.select { |k| k.downcase.index(submit_matcher) }.first
       form_post_body = form_values[:inputs].merge(submit_key => form_values[:submits][submit_key])
 
-      _load(full_action_url, :post, form_post_body)
+      _load(full_action_url, form_values[:method], form_post_body)
     end  
-    
-    
-    def _load(url, method = :get, send_body = nil)
+
+    def _load(url, method=:get, send_body=nil)
       url = _resolve_relative_url(url)
       loaded = Hpricotscape::Net.access_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug)
       self.cookies = loaded[:cookies]
@@ -69,14 +68,20 @@ module Hpricotscape
       url
     end
   end
-  
-  
-  
+
+
   module Form
-    
-    # Simply a helper for parsing a form embedded in a page, usually used for building up a form submission
+
+    # Simply a helper for parsing a form embedded in a page, usually used for
+    # building up a form submission.
     def self.parse(form_hpricot)
-      form_values = {:inputs => {}, :submits => {}, :action => form_hpricot.attributes['action'], :buttons => {}}
+      form_values = {
+        :inputs => {},
+        :submits => {},
+        :method => form_hpricot.attributes['method'].downcase.to_sym,
+        :action => form_hpricot.attributes['action'],
+        :buttons => {}
+      }
 
       # Check each input
       (form_hpricot/'input').each do |i| 
@@ -114,26 +119,27 @@ module Hpricotscape
 
       form_values
     end
-    
+
   end
-  
+
+
   # Handles all access helpers, including gzipping
   module Net
     DEFAULT_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7'
-    
-    def self.access_and_hpricot(full_url, cookies= [], referer = nil, method = :get, send_body = nil, override_cookie_string = nil, debug_mode = false, user_agent = DEFAULT_UA)
+
+    def self.access_and_hpricot(full_url, cookies=[], referer=nil, method=:get, send_body=nil, override_cookie_string=nil, debug_mode=false, user_agent=DEFAULT_UA)
       puts "[INFO #{Time.now}] GET #{full_url}" if debug_mode
       
       action_uri = URI.parse(full_url)
       http = ::Net::HTTP.new(action_uri.host, action_uri.port)
-      
+
       http.set_debug_output $stderr if debug_mode
-      
+
       if full_url[0..6].starts_with? 'https'
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
-      
+
       # Requests need to be able to handle query parameters.  For more
       # information, see:
       #   http://stackoverflow.com/questions/2986252/ruby-can-net-http-make-a-get-and-post-request-simultaneously
@@ -159,7 +165,7 @@ module Hpricotscape
         end
       }.join('; ')
 
-      request = (method == :post ? ::Net::HTTP::Post : ::Net::HTTP::Get).new(path, {
+      request = (::Net::HTTP.const_get(method.to_s.capitalize)).new(path, {
         'Cookie' => cookie_string, 
         'Referer' => referer.to_s, 
         'User-Agent' => user_agent, 
@@ -179,19 +185,19 @@ module Hpricotscape
       end
 
       redirect_url = nil
-      
+
       if response.header['location'] # let 'open-uri' do follow all redirects
         redirect_url = response.header['location'].starts_with?('/') ? "#{base_url(full_url)}#{response.header['location']}" : response.header['location']
-        
+
         puts "[INFO #{Time.now}] +--- Got redirected to #{redirect_url}" if debug_mode
-        
+
         redirect_settings = { 
           'Cookie' => cookie_string, 
           'Referer' => full_url, 
           'User-Agent' => user_agent, 
           :ssl_verify_mode => OpenSSL::SSL::VERIFY_NONE 
         }
-        
+
         final_doc = open(redirect_url, redirect_settings) do |f| 
           new_cookies = Hpricotscape::Cookie.parse_set_cookies(new_cookies, f.meta['set-cookie'])
           Hpricot(f)
@@ -199,14 +205,14 @@ module Hpricotscape
       else
         final_doc = Hpricot(unzipped_body(response))
       end
-      
+
       return { cookies: new_cookies, hpricot: final_doc, url: redirect_url ? redirect_url : full_url }
     end
 
     def self.base_url(url)
       url[0...url.index('/', 8)]
     end
-    
+
     def self.unzipped_body(res)
       if res.header[ 'Content-Encoding' ].eql?( 'gzip' ) then
         sio = StringIO.new( res.body )
@@ -218,11 +224,11 @@ module Hpricotscape
       page
     end
   end
-  
-  
+
+
   # Handles set-cookie parsing and merging, much of this borrowed from webrick
   module Cookie
-    
+
     # File webrick/httputils.rb, line 190
     def self.dequote(str)
       ret = (/\A"(.*)"\Z/ =~ str) ? $1 : str.dup
@@ -255,8 +261,8 @@ module Hpricotscape
       }
       return cookie
     end
-    
-    
+
+
     # File webrick/cookie.rb, line 104
     def self.parse_set_cookies(existing_cookies, str)
       new_cookies = str ? str.split(/,(?=[^;,]*=)|,$/).collect{ |c| parse_set_cookie(c) } : []
