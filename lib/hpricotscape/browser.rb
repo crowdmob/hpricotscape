@@ -28,9 +28,13 @@ module Hpricotscape
       end
 
       form_values = Hpricotscape::Form.parse(forms[0])
-      full_action_url = form_values[:action].starts_with?('/') ? 
-        "#{self.url.split('://').first}://#{self.url.split('://').last.split('/').first}#{form_values[:action]}" : 
+      full_action_url = if form_values[:action].starts_with?('/')
+        "#{self.url.split('://').first}://#{self.url.split('://').last.split('/').first}#{form_values[:action]}"
+      elsif form_values[:action].index('://').nil?
+        "#{self.url.rpartition('/').first}/#{form_values[:action]}"
+      else
         form_values[:action]
+      end
 
       # Allow user to use strings or symbols for input values, and merge them into the form
       form_values[:inputs].keys.each do |k|
