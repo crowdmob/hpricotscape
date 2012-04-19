@@ -132,7 +132,7 @@ module Hpricotscape
     DEFAULT_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7'
 
     def self.access_and_hpricot(full_url, cookies=[], referer=nil, method=:get, send_body=nil, override_cookie_string=nil, debug_mode=false, user_agent=DEFAULT_UA)
-      puts "[INFO #{Time.now}] GET #{full_url}" if debug_mode
+      puts "[INFO #{Time.now}] #{method.to_s.upcase} #{full_url}" if debug_mode
       
       action_uri = URI.parse(full_url)
       http = ::Net::HTTP.new(action_uri.host, action_uri.port)
@@ -180,7 +180,6 @@ module Hpricotscape
         'Accept-Charset' => 'ISO-8859-1,utf-8;q=0.7,*;q=0.3' 
       })
       request.set_form_data(send_body) if send_body
-
       response = http.request(request)
 
       new_cookies = cookies
@@ -188,20 +187,21 @@ module Hpricotscape
         new_cookies = Hpricotscape::Cookie.parse_set_cookies(cookies, response.header['Set-Cookie'])
       end
 
-      redirect_url = nil
+      if response.code == '307'
+        puts "[INFO #{Time.now}] +--- Got redirected to #{response.header['location']} (because of 307 HTTP status code)" if debug_mode
+        return access_and_hpricot(response.header['location'], new_cookies, full_url, method, send_body, override_cookie_string, debug_mode, user_agent)
+      end
 
+      redirect_url = nil
       if response.header['location'] # let 'open-uri' do follow all redirects
         redirect_url = response.header['location'].starts_with?('/') ? "#{base_url(full_url)}#{response.header['location']}" : response.header['location']
-
-        puts "[INFO #{Time.now}] +--- Got redirected to #{redirect_url}" if debug_mode
-
-        redirect_settings = { 
+        puts "[INFO #{Time.now}] +--- Got redirected to #{redirect_url} (because of location response header)" if debug_mode
+        redirect_settings = {
           'Cookie' => cookie_string, 
           'Referer' => full_url, 
           'User-Agent' => user_agent, 
           :ssl_verify_mode => OpenSSL::SSL::VERIFY_NONE 
         }
-
         final_doc = open(redirect_url, redirect_settings) do |f| 
           new_cookies = Hpricotscape::Cookie.parse_set_cookies(new_cookies, f.meta['set-cookie'])
           Hpricot(f)
