@@ -299,4 +299,3 @@ module Hpricotscape
     end
   end
 end
-
