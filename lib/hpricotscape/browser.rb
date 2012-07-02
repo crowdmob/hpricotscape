@@ -211,8 +211,8 @@ module Hpricotscape
         }
         io = open(redirect_url, redirect_settings) do |f| 
           new_cookies = Hpricotscape::Cookie.parse_set_cookies(new_cookies, f.meta['set-cookie'])
+          final_doc = Hpricot(f)
         end
-        final_doc = Hpricot(io)
       else
         final_doc = Hpricot(unzipped_body(response))
       end
