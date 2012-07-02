@@ -199,6 +199,7 @@ module Hpricotscape
       end
 
       redirect_url = nil
+      final_doc = nil
       if response.header['location'] # let 'open-uri' do follow all redirects
         redirect_url = response.header['location'].starts_with?('/') ? "#{base_url(full_url)}#{response.header['location']}" : response.header['location']
         puts "[INFO #{Time.now}] +--- Got redirected to #{redirect_url} (because of location response header)" if debug_mode
@@ -208,9 +209,9 @@ module Hpricotscape
           'User-Agent' => user_agent, 
           :ssl_verify_mode => OpenSSL::SSL::VERIFY_NONE 
         }
-        final_doc = open(redirect_url, redirect_settings) do |f| 
+        open(redirect_url, redirect_settings) do |f| 
           new_cookies = Hpricotscape::Cookie.parse_set_cookies(new_cookies, f.meta['set-cookie'])
-          Hpricot(f)
+          final_doc = Hpricot(f)
         end 
       else
         final_doc = Hpricot(unzipped_body(response))
