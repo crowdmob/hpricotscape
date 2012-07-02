@@ -2,12 +2,18 @@ module Hpricotscape
 
 
   class Browser
-    attr_accessor :cookies, :url, :html, :history, :debug
+    USER_AGENTS = {
+      chrome_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7',
+      safari_ios: 'Mozilla/5.0 (iPhone Simulator; CPU iPhone OS 5_0 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9A334 Safari/7534.48.3'
+    }
+    
+    attr_accessor :cookies, :url, :html, :history, :debug, :user_agent
 
-    def initialize preset_cookies = [], debug_mode = false
+    def initialize preset_cookies = [], debug_mode = false, user_agnt = USER_AGENTS[:chrome_mac]
       self.cookies = preset_cookies ? preset_cookies.dup : []
       self.debug = debug_mode
       self.history = []
+      self.user_agent = user_agnt
     end
 
     def url_base
@@ -50,7 +56,7 @@ module Hpricotscape
 
     def _load(url, method=:get, send_body=nil)
       url = _resolve_relative_url(url)
-      loaded = Hpricotscape::Net.access_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug)
+      loaded = Hpricotscape::Net.access_and_hpricot(url, self.cookies, self.url, method, send_body, nil, self.debug, self.user_agent)
       self.cookies = loaded[:cookies]
       self.url = loaded[:url]
       self.history << self.url
@@ -129,9 +135,9 @@ module Hpricotscape
 
   # Handles all access helpers, including gzipping
   module Net
-    DEFAULT_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7'
+    
 
-    def self.access_and_hpricot(full_url, cookies=[], referer=nil, method=:get, send_body=nil, override_cookie_string=nil, debug_mode=false, user_agent=DEFAULT_UA)
+    def self.access_and_hpricot(full_url, cookies=[], referer=nil, method=:get, send_body=nil, override_cookie_string=nil, debug_mode=false, user_agent)
       puts "[INFO #{Time.now}] #{method.to_s.upcase} #{full_url}" if debug_mode
       
       action_uri = URI.parse(full_url)
