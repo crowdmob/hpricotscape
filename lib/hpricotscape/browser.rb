@@ -225,11 +225,11 @@ module Hpricotscape
     end
 
     def self.unzipped_body(res)
-      if res.header[ 'Content-Encoding' ].eql?( 'gzip' ) then
-        sio = StringIO.new( res.body )
-        gz = Zlib::GzipReader.new( sio )
+      if res.header[ 'Content-Encoding' ].eql?('gzip') then
+        sio = StringIO.new(res.body)
+        gz = Zlib::GzipReader.new(sio)
         page = gz.read()
-      else    
+      else
         page = res.body
       end
       page
