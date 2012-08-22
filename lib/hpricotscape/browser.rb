@@ -6,7 +6,7 @@ module Hpricotscape
       chrome_mac: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_2) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7',
       safari_ios: 'Mozilla/5.0 (iPhone Simulator; CPU iPhone OS 5_0 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Version/5.1 Mobile/9A334 Safari/7534.48.3'
     }
-    
+
     attr_accessor :cookies, :url, :html, :history, :debug, :user_agent
 
     def initialize preset_cookies = [], debug_mode = false, user_agnt = USER_AGENTS[:chrome_mac]
